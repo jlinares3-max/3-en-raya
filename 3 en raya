@@ -1,0 +1,127 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+// --- Estado global ---
+char tablero[3][3];
+int puntaje[2] = {0, 0};
+string nombres[2];
+char simbolos[2];
+
+// --- Tablero ---
+void iniciarTablero() {
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+            tablero[i][j] = '1' + i * 3 + j;
+}
+
+void mostrarTablero() {
+    cout << "\n";
+    for (int i = 0; i < 3; i++) {
+        cout << " " << tablero[i][0] << " | " << tablero[i][1] << " | " << tablero[i][2] << "\n";
+        if (i < 2) cout << "---|---|---\n";
+    }
+    cout << "\n";
+}
+
+// --- Verificar ganador: horizontal, vertical, diagonal ---
+bool verificarGanador(char s) {
+    for (int i = 0; i < 3; i++)
+        if ((tablero[i][0] == s && tablero[i][1] == s && tablero[i][2] == s) ||   // horizontal
+            (tablero[0][i] == s && tablero[1][i] == s && tablero[2][i] == s))      // vertical
+            return true;
+    return (tablero[0][0] == s && tablero[1][1] == s && tablero[2][2] == s) ||    // diagonal izq-der
+           (tablero[0][2] == s && tablero[1][1] == s && tablero[2][0] == s);      // diagonal der-izq
+}
+
+// --- Verificar empate ---
+bool verificarEmpate() {
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+            if (tablero[i][j] != simbolos[0] && tablero[i][j] != simbolos[1])
+                return false;
+    return true;
+}
+
+// --- Turno recursivo ---
+void turno(int jugador, int movimientos) {
+    mostrarTablero();
+    cout << nombres[jugador] << " (" << simbolos[jugador] << "), elige casilla (1-9): ";
+
+    int pos;
+    cin >> pos;
+
+    int fila = (pos - 1) / 3;
+    int col  = (pos - 1) % 3;
+
+    // Casilla invalida o ocupada
+    if (pos < 1 || pos > 9 || tablero[fila][col] == simbolos[0] || tablero[fila][col] == simbolos[1]) {
+        cout << "Casilla invalida. Intenta de nuevo.\n";
+        turno(jugador, movimientos);
+        return;
+    }
+
+    tablero[fila][col] = simbolos[jugador];
+
+    // Ganador
+    if (verificarGanador(simbolos[jugador])) {
+        mostrarTablero();
+        puntaje[jugador]++;
+        cout << "*** " << nombres[jugador] << " GANA! ***\n";
+        cout << "Marcador -> " << nombres[0] << ": " << puntaje[0]
+             << "  |  " << nombres[1] << ": " << puntaje[1] << "\n";
+        return;
+    }
+
+    // Empate
+    if (verificarEmpate()) {
+        mostrarTablero();
+        cout << "EMPATE!\n";
+        cout << "Marcador -> " << nombres[0] << ": " << puntaje[0]
+             << "  |  " << nombres[1] << ": " << puntaje[1] << "\n";
+        return;
+    }
+
+    // Siguiente turno
+    turno(1 - jugador, movimientos + 1);
+}
+
+// --- Seleccion de simbolos ---
+void seleccionarSimbolos() {
+    cout << nombres[0] << ", elige tu simbolo (cualquier caracter): ";
+    cin >> simbolos[0];
+
+    cout << nombres[1] << ", elige tu simbolo (diferente al anterior): ";
+    cin >> simbolos[1];
+
+    if (simbolos[0] == simbolos[1]) {
+        cout << "Simbolos iguales. Intenta de nuevo.\n";
+        seleccionarSimbolos();
+    }
+}
+
+// --- Bucle de partidas ---
+void jugar() {
+    iniciarTablero();
+    turno(0, 0);
+
+    cout << "\nJugar de nuevo? (s/n): ";
+    char r;
+    cin >> r;
+    if (r == 's' || r == 'S') jugar();
+}
+
+int main() {
+    cout << "=== 3 EN RAYA ===\n\n";
+    cout << "Nombre jugador 1: "; cin >> nombres[0];
+    cout << "Nombre jugador 2: "; cin >> nombres[1];
+
+    seleccionarSimbolos();
+    jugar();
+
+    cout << "\n=== MARCADOR FINAL ===\n";
+    cout << nombres[0] << ": " << puntaje[0] << "\n";
+    cout << nombres[1] << ": " << puntaje[1] << "\n";
+
+    return 0;
+}
